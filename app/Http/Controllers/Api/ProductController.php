@@ -17,7 +17,7 @@ class ProductController extends Controller
             'data'=>$products
         ],200);
     }
-
+//create product
     public function create (Request $request){
 
         $validateProduct = Validator::make($request->all(), [
@@ -32,7 +32,7 @@ class ProductController extends Controller
                 'message' => 'validation error',
                 'data' => $validateProduct ->errors()
                 
-            ], 400);
+            ], 422);
         }
 
         $inputData = array(
@@ -49,6 +49,78 @@ class ProductController extends Controller
             'data'=>$product
         ],200);
     }
+
+    //update product
+
+    public function update (Request $request){
+
+        $validateProduct = Validator::make($request->all(), [
+            'id' => 'required|exists:products,id',
+            'prod_name' => 'required|unique:products,prod_name',
+            'quantity' => 'required|numeric',
+            'price' => 'required|numeric'
+        ]);
+    
+        if ($validateProduct->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'validation error',
+                'data' => $validateProduct ->errors()
+                
+            ], 422);
+        }
+
+        $product = Product::find($request->id);
+        $product->prod_name = $request->prod_name;
+        $product->quantity = $request->quantity;
+        $product->price = $request->price;
+        $product->description = $request->description ?? '';
+        $product->save();
+        return response()->json([
+            'status'=>true,
+            'message'=>'Product updated ',
+            'data'=>$product
+        ],200);
+    }
+
+    //delete product
+
+    public function delete($id)
+    {
+        // Validation
+        $validateProduct = Validator::make(['id' => $id], [
+            'id' => 'required|exists:products,id',
+        ]);
+    
+        if ($validateProduct->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Validation error',
+                'data' => $validateProduct->errors()
+            ], 422);
+        }
+    
+        // Find product by ID
+        $product = Product::find($id);
+    
+        if (!$product) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Product not found'
+            ], 404);
+        }
+    
+        // Delete the product
+        $product->delete();
+    
+        return response()->json([
+            'status' => true,
+            'message' => 'Product deleted',
+            'data' => $product
+        ], 200);
+    }
+    
+    
         }
     
 
